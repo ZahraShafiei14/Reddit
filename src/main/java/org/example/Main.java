@@ -158,12 +158,12 @@ public class Main {
     private static void joinSubreddit(User user) {
         Scanner scanner = new Scanner(System.in);
         clearScreen();
-
+        System.out.println("\n--------- Join Subreddit ----------");
         List<Subreddit> allSubreddits = repository.getAllSubreddits();
         for (int i = 0; i < allSubreddits.size() ; i++){
             System.out.println( i + 1 + ") " + allSubreddits.get(i).getName());
         }
-        System.out.println("Please enter the name of the subreddit you'd like to join: ");
+        System.out.println("Please enter the NAME of the subreddit you'd like to join: ");
         String name = scanner.nextLine();
 
         if (repository.getSubredditByName(name) == null) {
@@ -171,10 +171,21 @@ public class Main {
             userMenu();
         } else {
             Subreddit subreddit = repository.getSubredditByName(name);
+            if(subreddit.getCreator().equals(user)) {
+                System.out.println("Already creator? No need to join again!");
+                userMenu();
+            } else {
+                for (User u : subreddit.getMembers()) {
+                    if (u.equals(user)) {
+                        System.out.println("Already a member! No need to join again!");
+                        userMenu();
+                    }
+                }
+            }
             user.getSubscribedSubreddits().add(subreddit);
             subreddit.getMembers().add(user);
             System.out.println(user.getUsername() + " subscribed " + subreddit.getName());
-            runMenu();
+            userMenu();
         }
     }
 
@@ -197,7 +208,71 @@ public class Main {
     }
 
     private static void search() {
-
+        Scanner scanner = new Scanner(System.in);
+        clearScreen();
+        System.out.println("\n--------- Search ----------");
+        System.out.println("(1) User\n(2) Subreddit\n(3) Back\nEnter your choice: ");
+        switch (scanner.nextInt()) {
+            case 1 -> {
+                scanner.nextLine();
+                System.out.println("Please enter the username you are searching for:");
+                String name = scanner.nextLine();
+                boolean found = false;
+                for (User user : repository.getAllUsers()) {
+                    if (user.getUsername().contains(name)) {
+                        found = true;
+                        System.out.println(user.getUsername() +" was found.\n" +
+                                "Would you like to see " + user.getUsername()+"'s profile? [Y/N]");
+                        String ans = scanner.nextLine();
+                        if (ans.toLowerCase().equals("y")) {
+                            System.out.println(viewUserInfo(user));
+                            userMenu();
+                        }else if (ans.toLowerCase().equals("n"))
+                            userMenu();
+                        else {
+                            System.out.println("Invalid input. Please try again...");
+                            search();
+                        }
+                    }
+                }
+                if (!found) {
+                    System.out.println("username was not found.");
+                    userMenu();
+                }
+            }
+            case 2 -> {
+                scanner.nextLine();
+                System.out.println("Please enter the subreddit's name you are searching for:");
+                String name = scanner.nextLine();
+                boolean found = false;
+                for (Subreddit subreddit : repository.getAllSubreddits()) {
+                    if (subreddit.getName().contains(name)) {
+                        found = true;
+                        System.out.println(subreddit.getName() +" was found.\n" +
+                                "Would you like to see " + subreddit.getName() +"'s info? [Y/N]");
+                        String ans = scanner.nextLine();
+                        if (ans.toLowerCase().equals("y")) {
+                            System.out.println(viewSubredditsInfo(subreddit));
+                            userMenu();
+                        } else if (ans.toLowerCase().equals("n"))
+                            userMenu();
+                        else {
+                            System.out.println("Invalid input. Please try again...");
+                            search();
+                        }
+                    }
+                }
+                if (!found) {
+                    System.out.println("subreddit was not found.");
+                    userMenu();
+                }
+            }
+            case 3 -> userMenu();
+            default -> {
+                System.out.println("Invalid input. Please try again...");
+                search();
+            }
+        }
     }
 
     private static void leaveComment(User user) {
@@ -213,8 +288,10 @@ public class Main {
             case 1 -> {
                 scanner.nextLine();
                 viewSubscribedSubreddit(user);
-                if (user.getSubscribedSubreddits().isEmpty()) createPost(user);
-
+                if (user.getSubscribedSubreddits().isEmpty()) {
+                    System.out.println("No subreddits has been subscribed yet.");
+                    createPost(user);
+                }
                 System.out.println("Enter subreddits name: ");
                 String name = scanner.nextLine();
                 Subreddit subreddit = repository.getSubredditByName(name);
@@ -232,8 +309,10 @@ public class Main {
             case 2 -> {
                 scanner.nextLine();
                 viewCreatedSubreddit(user);
-                if (user.getCreatedSubreddits().isEmpty()) createPost(user);
-
+                if (user.getCreatedSubreddits().isEmpty()){
+                    System.out.println("No subreddits has been created yet.");
+                    createPost(user);
+                }
                 System.out.println("Enter subreddit's name: ");
                 String name = scanner.nextLine();
                 if (repository.getSubredditByName(name) == null) {
@@ -251,6 +330,7 @@ public class Main {
     private static void completePostInfo(User user,Subreddit subreddit){
         Scanner scanner = new Scanner(System.in);
         clearScreen();
+        System.out.println("\n--------- Complete post info ----------");
         System.out.println("Enter your post title: ");
         String title = scanner.nextLine();
 
@@ -304,15 +384,14 @@ public class Main {
         String name = scanner.nextLine();
         if (repository.getSubredditByName(name) != null) {
             System.out.println(name + "is already taken.");
-            createSubreddit(user);
+            userMenu();
         } else {
             System.out.println("choose creation type, Please Enter the name: \nPublic : Anyone can view, post, and comment to this community.");
             System.out.println("Restricted : Anyone can view, but only approved users can contribute");
             String type = scanner.nextLine();
             Subreddit subreddit = new Subreddit(name, user, type.toLowerCase());
-            // creator set in constructor
+            // creator and add member set in constructor
             subreddit.getMembers().add(user);
-//            user.getCreatedSubreddits().add(subreddit);
 
             System.out.println("You can add a few lines about subreddit: ");
             String description = scanner.nextLine();

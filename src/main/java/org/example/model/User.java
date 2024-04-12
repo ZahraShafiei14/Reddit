@@ -4,10 +4,13 @@ package org.example.model;
 
 import org.example.exceptions.InvalidEmailException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+
+import static org.example.model.Subreddit.formatter;
 
 public class User {
     private String username;
@@ -16,6 +19,7 @@ public class User {
     private String bio;
     private UUID userID;
     private int karma;
+    private String createdAt;
     private boolean loggedIn = false;
     private final List<Comment> allComments = new ArrayList<>();//leaved by user
     private final List<Comment> upVotedComments = new ArrayList<>();
@@ -37,6 +41,7 @@ public class User {
         setBio("");
         setUserID(UUID.randomUUID());
         setKarma(0);
+        setCreatedAt(formatter(LocalDateTime.now()));
     }
     public User(String username, String password, String email, Subreddit subreddit){
         this.username = username;
@@ -110,7 +115,16 @@ public class User {
                 + " Subreddit : " + post.getSubreddit().getName() + "\n"
                 + "------------------------------\n");
     }
-
+    public static String viewUserInfo(User user) {
+        return ("---------- " + user.getUsername() + " ----------\n"
+                + " Created at : " + user.getCreatedAt() + "\n"
+                + " Email: " + user.getEmail() + "\n"
+                + " Bio : " + user.getBio() + "\n"
+                + " Karma : " + user.getKarma() + "\n"
+                + " Created subreddits : " + ((user.getSubscribedSubreddits().size() == 0) ? "nothing": user.getSubscribedSubreddits().size() )+ "\n"
+                + " Created posts : " + ((user.getCreatedPosts().size() == 0) ? "nothing": user.getCreatedPosts().size() )+ "\n"
+                + "------------------------------\n");
+    }
     public List<Post> getCreatedPosts() {
         return createdPosts;
     }
@@ -203,6 +217,14 @@ public class User {
 
     public List<Subreddit> getCreatedSubreddits() {
         return createdSubreddits;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
     public List<Subreddit> getSubscribedSubreddits() {

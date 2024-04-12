@@ -22,7 +22,7 @@ public class Subreddit {
         setCreationType(creationType);
         setCreator(creator);
         creator.getCreatedSubreddits().add(this);
-//        allSubreddits.add(this);
+        getMembers().add(creator);
     }
 
     public static String formatter(LocalDateTime time) {

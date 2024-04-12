@@ -67,8 +67,20 @@ public class RedditRepository {
         });
         return allSubreddits;
     }
+    public List<User> getAllUsers() {
+        Set<String> usernames = new HashSet<>();
+        List<User> allUsers = new ArrayList<>();
 
+        // Add users from subscribedUsers
+        subscribedUsers.forEach(user -> {
+            if (!usernames.contains(user.getUsername())) {
+                allUsers.add(user);
+                usernames.add(user.getUsername());
+            }
+        });
 
+        return allUsers;
+    }
     public User getUserByUsername(String username) {
         for (User user : subscribedUsers) {
             if (user.getUsername().equals(username))
