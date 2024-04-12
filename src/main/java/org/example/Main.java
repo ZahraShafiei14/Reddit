@@ -4,6 +4,7 @@ import org.example.model.Post;
 import org.example.model.Subreddit;
 import org.example.model.User;
 
+import java.util.List;
 import java.util.Scanner;
 
 import static org.example.model.User.*;
@@ -140,22 +141,56 @@ public class Main {
             }
         }
     }
-
+//    public static void viewAllSubreddits () {
+//        StringBuilder allSub = new StringBuilder();
+//
+//        allSub.append("These following subreddits has been created : \n");
+//
+//        if (repository.getAllSubreddits().isEmpty()) {
+//            allSub = new StringBuilder("No subreddits has been created yet.");
+//        } else {
+//            for (int i = 0; i < repository.getAllSubreddits().size(); i++) {
+//                allSub.append(viewSubredditsInfo(repository.getAllSubreddits().get(i)));
+//            }
+//        }
+//        System.out.println(allSub);
+//    }
     private static void joinSubreddit(User user) {
-        System.out.println();
+        Scanner scanner = new Scanner(System.in);
+        clearScreen();
+
+        List<Subreddit> allSubreddits = repository.getAllSubreddits();
+        for (int i = 0; i < allSubreddits.size() ; i++){
+            System.out.println( i + 1 + ") " + allSubreddits.get(i).getName());
+        }
+        System.out.println("Please enter the name of the subreddit you'd like to join: ");
+        String name = scanner.nextLine();
+
+        if (repository.getSubredditByName(name) == null) {
+            System.out.println("Subreddit not found!");
+            userMenu();
+        } else {
+            Subreddit subreddit = repository.getSubredditByName(name);
+            user.getSubscribedSubreddits().add(subreddit);
+            subreddit.getMembers().add(user);
+            System.out.println(user.getUsername() + " subscribed " + subreddit.getName());
+            runMenu();
+        }
     }
 
     private static void logout(User user) {
         Scanner scanner = new Scanner(System.in);
         clearScreen();
-        System.out.println("\n---- Log Out ----");
+        System.out.println("\n------- Log Out --------");
         System.out.println("Are you sure you want to log out?[Y/N]");
-        if (scanner.nextLine().equalsIgnoreCase("y")) {
+        String in = scanner.nextLine();
+        if (in.toLowerCase().equals("y")) {
             user.setLoggedIn(false);
             repository.setCurrentUser(null);
             System.out.println("Logged out successfully.\nThanks for using the app ^^ .Come back again...");
             runMenu();
-        } else {
+        } else if(in.toLowerCase().equals("n")) userMenu();
+        else {
             System.out.println("Invalid input. Please try again...");
             userMenu();
         }
@@ -179,21 +214,32 @@ public class Main {
                 scanner.nextLine();
                 viewSubscribedSubreddit(user);
                 if (user.getSubscribedSubreddits().isEmpty()) createPost(user);
+
                 System.out.println("Enter subreddits name: ");
                 String name = scanner.nextLine();
                 Subreddit subreddit = repository.getSubredditByName(name);
-                if (subreddit.getCreationType().equals("public")) {
-                    System.out.println("you have access to " + subreddit.getName());
-                    completePostInfo(user, subreddit);
-                } else System.out.println("You don't have access to create post.");
+                if (repository.getSubredditByName(name) == null) {
+                    System.out.println("Subreddit not found!");
+                    createPost(user);
+                }else {
+                    if (subreddit.getCreationType().equals("public")) {
+                        System.out.println("you have access to " + subreddit.getName());
+                        completePostInfo(user, subreddit);
+                    } else System.out.println("You don't have access to create post.");
+                    // request to creator to grant you as admin
+                }
             }
             case 2 -> {
                 scanner.nextLine();
                 viewCreatedSubreddit(user);
                 if (user.getCreatedSubreddits().isEmpty()) createPost(user);
+
                 System.out.println("Enter subreddit's name: ");
                 String name = scanner.nextLine();
-                completePostInfo(user, repository.getSubredditByName(name));
+                if (repository.getSubredditByName(name) == null) {
+                    System.out.println("Subreddit not found!");
+                    createPost(user);
+                }else completePostInfo(user, repository.getSubredditByName(name));
             }
             case 3 -> userMenu();
             default -> {
@@ -217,7 +263,7 @@ public class Main {
 
         System.out.println("Would you like to enable comments for this post? [Y/N]");
         String in = scanner.nextLine();
-//
+
         if (in.equals("y") || in.equals("Y")) {
             post.setLocked(false);
         }else if (in.equals("n") || in.equals("N")) {
@@ -264,12 +310,18 @@ public class Main {
             System.out.println("Restricted : Anyone can view, but only approved users can contribute");
             String type = scanner.nextLine();
             Subreddit subreddit = new Subreddit(name, user, type.toLowerCase());
+            // creator set in constructor
             subreddit.getMembers().add(user);
-            user.getCreatedSubreddits().add(subreddit);
+//            user.getCreatedSubreddits().add(subreddit);
+
+            System.out.println("You can add a few lines about subreddit: ");
+            String description = scanner.nextLine();
+            subreddit.setDescription(description);
+
             System.out.println(subreddit.getName() + " created successfully.");
             System.out.println(viewSubredditsInfo(subreddit));
             userMenu();
-            //System.out.println("(1) Edit Description\n(2) Create Post");
+            //System.out.println("(1) Edit Description\n(2) Create Post\n(3) Delete post => decrease karma too ");
             //
         }
     }
@@ -289,13 +341,11 @@ public class Main {
                 "Enter your choice: ");
         switch (scanner.nextInt()) {
             case 1 -> {
-                scanner.nextLine();
                 viewSubscribedSubreddit(user);
                 System.out.println("Do you want to unsubscribe subreddit? [Y/N]");
                 viewProfile(user);
             }
             case 2 -> {
-                scanner.nextLine();
                 viewCreatedSubreddit(user);
                 viewProfile(user);
             }

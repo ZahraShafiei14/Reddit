@@ -5,6 +5,7 @@ package org.example.model;
 import org.example.exceptions.InvalidEmailException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,7 +38,12 @@ public class User {
         setUserID(UUID.randomUUID());
         setKarma(0);
     }
-
+    public User(String username, String password, String email, Subreddit subreddit){
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        createdSubreddits.add(subreddit);
+    }
     public static boolean isEmailValid(String email) {
         return email.matches(EMAIL_REGEX);
     }
@@ -50,7 +56,7 @@ public class User {
         if (user.getSubscribedSubreddits().isEmpty()) {
             subsub = new StringBuilder("No subreddits has been subscribed yet.");
         } else {
-            for (int i = 0; i <= user.subscribedSubreddits.size(); i++) {
+            for (int i = 0; i < user.subscribedSubreddits.size(); i++) {
                 subsub.append(viewSubredditsInfo(user.subscribedSubreddits.get(i)));
             }
         }
@@ -80,13 +86,12 @@ public class User {
         if (user.getCreatedPosts().isEmpty()) {
             createdPosts = new StringBuilder("No posts has been created yet.");
         } else {
-            for (int i = 0; i <= user.createdPosts.size(); i++) {
+            for (int i = 0; i < user.createdPosts.size(); i++) {
                 createdPosts.append(viewPostsInfo(user.createdPosts.get(i)));
             }
         }
         System.out.println(createdPosts);
     }
-
     public static String viewSubredditsInfo(Subreddit subreddit) {
         return ("---------- " + subreddit.getName() + " ---------\n"
                 + " Description : " + subreddit.getDescription() + "\n"

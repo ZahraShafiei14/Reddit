@@ -13,8 +13,6 @@ public class Subreddit {
     private List<User> admins = new ArrayList<>();
     private List<User> members = new ArrayList<>();
     private List<Post> posts = new ArrayList<>();
-//    private static final List<Subreddit> allSubreddits = new ArrayList<>();
-
     private String creationType; // can not change
 
     public Subreddit(String name, User creator, String creationType) {
@@ -23,6 +21,7 @@ public class Subreddit {
         setCreatedAt(formatter(LocalDateTime.now()));
         setCreationType(creationType);
         setCreator(creator);
+        creator.getCreatedSubreddits().add(this);
 //        allSubreddits.add(this);
     }
 
