@@ -1,5 +1,6 @@
 package org.example.model;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class Comment {
@@ -9,7 +10,7 @@ public class Comment {
     private User author;
     private Post post;
 
-    public Comment(User author, String content, String createdAt, Post post) {
+    public Comment(User author, String content, Post post) {
         setContent(content);
         setAuthor(author);
         setCreatedAt(LocalDateTime.now());
@@ -31,6 +32,27 @@ public class Comment {
     public void editComment(String content) {
         setContent(content);
         System.out.println("Comment was edited.");
+    }
+    public String getTimeAgo(LocalDateTime time) {
+        LocalDateTime now = LocalDateTime.now();
+        Duration duration = Duration.between(time, now);
+
+        long seconds = duration.getSeconds();
+        if (seconds < 60) {
+            return "Just now";
+        } else if (seconds < 3600) {
+            long minutes = seconds / 60;
+            return minutes + " minute" + (minutes == 1 ? "" : "s") + " ago";
+        } else if (seconds < 86400) {
+            long hours = seconds / 3600;
+            return hours + " hour" + (hours == 1 ? "" : "s") + " ago";
+        } else if (seconds < (86400 * 30)){
+            long days = seconds / 86400;
+            return days + " day" + (days == 1 ? "" : "s") + " ago";
+        }else {
+            long months = seconds / (86400 * 30);
+            return months + " month" + (months == 1 ? "" : "s") + " ago";
+        }
     }
 
     public String getContent() {

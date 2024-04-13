@@ -4,6 +4,7 @@ package org.example.model;
 
 import org.example.exceptions.InvalidEmailException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +29,7 @@ public class User {
     private final List<Post> createdPosts = new ArrayList<>();
     private final List<Post> savedPosts = new ArrayList<>();
     private final List<Post> upVotedPosts = new ArrayList<>();
+    private final List<Post> timelinePosts = new ArrayList<>();
     private final List<Post> downVotedPosts = new ArrayList<>();
     private final List<Subreddit> createdSubreddits = new ArrayList<>();
     private final List<Subreddit> subscribedSubreddits = new ArrayList<>();
@@ -52,7 +54,6 @@ public class User {
     public static boolean isEmailValid(String email) {
         return email.matches(EMAIL_REGEX);
     }
-
     public static void viewSubscribedSubreddit(User user) {
         StringBuilder subsub = new StringBuilder();
 
@@ -67,7 +68,14 @@ public class User {
         }
         System.out.println(subsub);
     }
-
+    // add subscribed subreddit's post to timeline.
+    public void addTimelinePosts(){
+        for (Subreddit subreddit1: getSubscribedSubreddits()) {
+            for (Post post : subreddit1.getPosts()) {
+                timelinePosts.add(post);
+            }
+        }
+    }
     public static void viewCreatedSubreddit(User user) {
         StringBuilder createdSub = new StringBuilder();
 
@@ -82,20 +90,47 @@ public class User {
         }
         System.out.println(createdSub);
     }
-
     public static void viewCreatedPosts(User user) {
-        StringBuilder createdPosts = new StringBuilder();
+        String createdPosts = "";
 
-        createdPosts.append(user.getUsername()).append(" created these following posts: \n");
+        createdPosts += user.getUsername() + " created these following posts: \n";
 
         if (user.getCreatedPosts().isEmpty()) {
-            createdPosts = new StringBuilder("No posts has been created yet.");
+            createdPosts += "No posts has been created yet.";
         } else {
             for (int i = 0; i < user.createdPosts.size(); i++) {
-                createdPosts.append(viewPostsInfo(user.createdPosts.get(i)));
+                createdPosts += viewPostsInfo(user.createdPosts.get(i));
             }
         }
         System.out.println(createdPosts);
+    }
+    public static void viewSavedPosts(User user) {
+        String savedPosts = "";
+
+        savedPosts += user.getUsername() + " saved these following posts: \n";
+
+        if (user.getCreatedPosts().isEmpty()) {
+            savedPosts += "No posts has been saved yet.";
+        } else {
+            for (int i = 0; i < user.savedPosts.size(); i++) {
+                savedPosts += viewPostsInfo(user.savedPosts.get(i));
+            }
+        }
+        System.out.println(savedPosts);
+    }
+    public static void viewTimeLinePosts(User user){
+        String tlPosts = "";
+
+        tlPosts += user.getUsername() + " have these trending posts: \n";
+
+        if (user.getTimelinePosts().isEmpty()) {
+            tlPosts+= "No posts has been added yet.";
+        } else {
+            for (int i = 0; i < user.timelinePosts.size(); i++) {
+                tlPosts += viewPostsInfo(user.timelinePosts.get(i));
+            }
+        }
+        System.out.println(tlPosts);
     }
     public static String viewSubredditsInfo(Subreddit subreddit) {
         return ("---------- " + subreddit.getName() + " ---------\n"
@@ -105,7 +140,6 @@ public class User {
                 + " Posts : " + subreddit.getPosts().size() + "\n"
                 + "--------------------------\n");
     }
-
     public static String viewPostsInfo(Post post) {
         return ("---------- " + post.getTitle() + " ----------\n"
                 + " Content : " + post.getContent() + "\n"
@@ -113,6 +147,12 @@ public class User {
                 + " Author : " + post.getAuthor().getUsername() + "\n"
                 + " Karma : " + post.getPostsKarma() + "\n"
                 + " Subreddit : " + post.getSubreddit().getName() + "\n"
+                + "------------------------------\n");
+    }
+    public static String viewCommentInfo(Comment comment) {
+        return ("--- Author : " + comment.getAuthor() + " ------- " + comment.getTimeAgo(comment.getCreatedAt())+" ---\n"
+                + " Content : " + comment.getContent() + "\n"
+                + " Karma : " + comment.getCommentKarma() + "\n"
                 + "------------------------------\n");
     }
     public static String viewUserInfo(User user) {
@@ -125,6 +165,84 @@ public class User {
                 + " Created posts : " + ((user.getCreatedPosts().size() == 0) ? "nothing": user.getCreatedPosts().size() )+ "\n"
                 + "------------------------------\n");
     }
+    public static void viewUpvotedComments(User user){
+        String upComment = "";
+
+        upComment += user.getUsername() + " upvoted these following comments: \n";
+
+        if (user.getUpVotedComments().isEmpty()) {
+            upComment+= "No comments has been upvoted yet.";
+        } else {
+            for (int i = 0; i < user.upVotedComments.size(); i++) {
+                upComment += viewCommentInfo(user.getUpVotedComments().get(i));
+            }
+        }
+        System.out.println(upComment);
+    }
+    public static void viewDownvotedComments(User user){
+        String downComment = "";
+
+        downComment += user.getUsername() + " downvoted these following comments: \n";
+
+        if (user.getUpVotedComments().isEmpty()) {
+            downComment+= "No comments has been downvoted yet.";
+        } else {
+            for (int i = 0; i < user.upVotedComments.size(); i++) {
+                downComment += viewCommentInfo(user.getUpVotedComments().get(i));
+            }
+        }
+        System.out.println(downComment);
+    }
+    public static void viewUpvotedPosts(User user){
+        String upPost = "";
+
+        upPost += user.getUsername() + " upvoted these following posts: \n";
+
+        if (user.getUpVotedPosts().isEmpty()) {
+            upPost+= "No posts has been upvoted yet.";
+        } else {
+            for (int i = 0; i < user.upVotedPosts.size(); i++) {
+                upPost += viewPostsInfo(user.upVotedPosts.get(i));
+            }
+        }
+        System.out.println(upPost);
+    }
+    public static void viewDownvotedPosts(User user){
+        String downPost = "";
+
+        downPost += user.getUsername() + " downvoted these following posts: \n";
+
+        if (user.getDownVotedPosts().isEmpty()) {
+            downPost += "No posts has been downvoted yet.";
+        } else {
+            for (int i = 0; i < user.downVotedPosts.size(); i++) {
+                downPost += viewPostsInfo(user.downVotedPosts.get(i));
+            }
+        }
+        System.out.println(downPost);
+    }
+    public String getTimeAgo(LocalDateTime time) {
+        LocalDateTime now = LocalDateTime.now();
+        Duration duration = Duration.between(time, now);
+
+        long seconds = duration.getSeconds();
+        if (seconds < 60) {
+            return "Just now";
+        } else if (seconds < 3600) {
+            long minutes = seconds / 60;
+            return minutes + " minute" + (minutes == 1 ? "" : "s") + " ago";
+        } else if (seconds < 86400) {
+            long hours = seconds / 3600;
+            return hours + " hour" + (hours == 1 ? "" : "s") + " ago";
+        } else if (seconds < (86400 * 30)){
+            long days = seconds / 86400;
+            return days + " day" + (days == 1 ? "" : "s") + " ago";
+        }else {
+            long months = seconds / (86400 * 30);
+            return months + " month" + (months == 1 ? "" : "s") + " ago";
+        }
+    }
+
     public List<Post> getCreatedPosts() {
         return createdPosts;
     }
@@ -161,6 +279,10 @@ public class User {
 
     public void setLoggedIn(boolean loggedIn) {
         this.loggedIn = loggedIn;
+    }
+
+    public List<Post> getTimelinePosts() {
+        return timelinePosts;
     }
 
     public String getUsername() {

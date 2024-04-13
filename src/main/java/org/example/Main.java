@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.model.Comment;
 import org.example.model.Post;
 import org.example.model.Subreddit;
 import org.example.model.User;
@@ -96,7 +97,7 @@ public class Main {
             if (user != null) {
                 validUsername = true;
                 if (user.isLoggedIn()) {
-                    System.out.println(user.getUsername() + "is already logged in.");
+                    System.out.println(user.getUsername() + " is already logged in.");
                     userMenu();
                     break;
                 }
@@ -122,9 +123,8 @@ public class Main {
         System.out.println("(3) Join subreddit");
         System.out.println("(4) Create subreddit");
         System.out.println("(5) Create post");
-        System.out.println("(6) Leave comment");
-        System.out.println("(7) Search");
-        System.out.println("(8) Logout");
+        System.out.println("(6) Search");
+        System.out.println("(7) Logout");
         System.out.println("Enter your choice: ");
         switch (scanner.nextInt()) {
             case 1 -> editPersonalInfo(user);
@@ -132,29 +132,14 @@ public class Main {
             case 3 -> joinSubreddit(user);
             case 4 -> createSubreddit(user);
             case 5 -> createPost(user);
-            case 6 -> leaveComment(user);
-            case 7 -> search();
-            case 8 -> logout(user);
+            case 6 -> search();
+            case 7 -> logout(user);
             default -> {
                 System.out.println("Invalid input. Please try again...");
                 userMenu();
             }
         }
     }
-//    public static void viewAllSubreddits () {
-//        StringBuilder allSub = new StringBuilder();
-//
-//        allSub.append("These following subreddits has been created : \n");
-//
-//        if (repository.getAllSubreddits().isEmpty()) {
-//            allSub = new StringBuilder("No subreddits has been created yet.");
-//        } else {
-//            for (int i = 0; i < repository.getAllSubreddits().size(); i++) {
-//                allSub.append(viewSubredditsInfo(repository.getAllSubreddits().get(i)));
-//            }
-//        }
-//        System.out.println(allSub);
-//    }
     private static void joinSubreddit(User user) {
         Scanner scanner = new Scanner(System.in);
         clearScreen();
@@ -275,9 +260,16 @@ public class Main {
         }
     }
 
-    private static void leaveComment(User user) {
+    private static void leaveComment(User user, Post post) {
+        Scanner scanner = new Scanner(System.in);
+        clearScreen();
+        System.out.println("\n------- Leave comment --------");
+        System.out.println("Enter content: ");
+        String content = scanner.nextLine();
+        Comment comment = new Comment(user, content, post);
+        post.addComment(comment);
+        viewCommentInfo(comment);
     }
-
     private static void createPost(User user) {
         Scanner scanner = new Scanner(System.in);
         clearScreen();
@@ -302,7 +294,10 @@ public class Main {
                     if (subreddit.getCreationType().equals("public")) {
                         System.out.println("you have access to " + subreddit.getName());
                         completePostInfo(user, subreddit);
-                    } else System.out.println("You don't have access to create post.");
+                    } else {
+                        System.out.println("You don't have access to create post.");
+                        userMenu();
+                    }
                     // request to creator to grant you as admin
                 }
             }
@@ -357,23 +352,6 @@ public class Main {
         System.out.println(viewPostsInfo(post));
         createPost(user);
     }
-
-//    private static void reactPost(Post post, User user, Subreddit subreddit){
-//        Scanner scanner = new Scanner(System.in);
-//        // upvote or down vote post
-//        System.out.println("Would you like to upvote or downvote this post? [U/D]" );
-//        if (scanner.nextLine().equalsIgnoreCase("u"))
-//            if (repository.upVotedPost(post,user)) System.out.println("You've already upvoted on this post");
-//            else post.increasePostKarma();
-//        else if (scanner.nextLine().equalsIgnoreCase("d"))
-//            if (repository.downVotedPost(post,user)) System.out.println("You've already downvoted on this post");
-//            else post.decreasePostKarma();
-//        else System.out.println("Invalid input.Please try again..."); completePostInfo(user,subreddit);
-//        // save or unsaved post
-//
-//    }
-//    }
-
     private static void createSubreddit(User user) {
         Scanner scanner = new Scanner(System.in);
         clearScreen();
@@ -391,7 +369,7 @@ public class Main {
             String type = scanner.nextLine();
             Subreddit subreddit = new Subreddit(name, user, type.toLowerCase());
             // creator and add member set in constructor
-            subreddit.getMembers().add(user);
+//            subreddit.getMembers().add(user);
 
             System.out.println("You can add a few lines about subreddit: ");
             String description = scanner.nextLine();
@@ -420,31 +398,518 @@ public class Main {
                 "Enter your choice: ");
         switch (scanner.nextInt()) {
             case 1 -> {
+                scanner.nextLine();
+                clearScreen();
                 viewSubscribedSubreddit(user);
-                System.out.println("Do you want to unsubscribe subreddit? [Y/N]");
+                if (!user.getSubscribedSubreddits().isEmpty()) {
+                    System.out.println("Would you like to unsubscribe subreddits?[Y/N]");
+                    String in = scanner.nextLine();
+                    if (in.toLowerCase().equals("y")){
+                        System.out.println("\n--------- Subreddit Reaction ----------");
+                        System.out.println("Enter subreddit's name :");
+                        String name = scanner.nextLine();
+                        if(repository.getSubredditByName(name) == null){
+                            System.out.println("Subreddit was not found.");
+                        }else{
+                            user.getSubscribedSubreddits().remove(repository.getSubredditByName(name));
+                            System.out.println("Subreddit was unsubscribed.");
+                        }
+                    }else if (in.toLowerCase().equals("n")){
+                    }else {
+                        System.out.println("Invalid input.Please try again...");
+                    }
+                }
                 viewProfile(user);
             }
             case 2 -> {
+                scanner.nextLine();
+                clearScreen();
                 viewCreatedSubreddit(user);
+                if (!user.getCreatedSubreddits().isEmpty()) {
+                    System.out.println("Would you like to delete your subreddits?[Y/N]");
+                    String in = scanner.nextLine();
+                    if (in.toLowerCase().equals("y")){
+                        System.out.println("\n--------- Subreddit Reaction ----------");
+                        System.out.println("Enter subreddit's name :");
+                        String name = scanner.nextLine();
+                        if(repository.getSubredditByName(name) == null){
+                            System.out.println("Subreddit was not found.");
+                            }else{
+                                user.getCreatedSubreddits().remove(repository.getSubredditByName(name));
+                                System.out.println("Subreddit was deleted.");
+                            }
+                        } else if (in.toLowerCase().equals("n")){
+                    }else System.out.println("Invalid input.Please try again...");
+                }
                 viewProfile(user);
             }
             case 3 -> {
+                scanner.nextLine();
+                clearScreen();
                 viewCreatedPosts(user);
                 if (!user.getCreatedPosts().isEmpty()) {
-                    System.out.println("Do you want to see comments? \n");
+                    System.out.println("Would you like to react the post?[Y/N] ");
+                    String in = scanner.nextLine();
+                    if (in.toLowerCase().equals("y")){
+                        System.out.println("\n--------- Post Reaction ----------");
+                        System.out.println("Enter post's title to react : ");
+                        String title = scanner.nextLine();
+                        if (repository.getPostsByTitle(title) == null) {
+                            System.out.println("Post was not found.");
+                        } else {
+                            Post post = repository.getPostsByTitle(title);
+                            System.out.println("(1) Upvote\n" +
+                                    "(2) Downvote\n" +
+                                    "(3) Delete\n" +
+                                    "(4) Leave comments\n" +
+                                    "(5) Save post\n"+
+                                    "(6) Back\n"+
+                                    "Enter your choice: ");
+                            int input = scanner.nextInt();
+                            switch (input) {
+                                case 1 -> upvotedPost(post, user);
+                                case 2 -> downvotedPost(post, user);
+                                case 3 -> {
+                                    user.getCreatedPosts().remove(post);
+                                    System.out.println("Post was deleted.");
+                                }
+                                case 4 -> {
+                                    if (post.isLocked())
+                                        System.out.println("Leaving a comment for this post is locked.");
+                                    else
+                                        leaveComment(user, post);
+                                }
+                                case 5 -> savedPost(post, user);
+                                case 6 -> viewProfile(user);
+                                default -> {
+                                    System.out.println("Invalid input.");
+                                    viewProfile(user);
+                                }
+                            }
+                        }
+                    } else if (in.toLowerCase().equals("n")){
+                        viewProfile(user);
+                    }else System.out.println("Invalid input.Please try again...");
                 }
                 viewProfile(user);
+            }
+            ///same method
+            case 4 -> {
+                scanner.nextLine();
+                clearScreen();
+                viewSavedPosts(user);
+                if (!user.getSavedPosts().isEmpty()) {
+                    System.out.println("Would you like to react the post?[Y/N] ");
+                    String in = scanner.nextLine();
+                    if (in.toLowerCase().equals("y")){
+                        System.out.println("\n--------- Post Reaction ----------");
+                        System.out.println("Enter post's title to react : ");
+                        String title = scanner.nextLine();
+                        if (repository.getPostsByTitle(title) == null) {
+                            System.out.println("Post was not found.");
+                        } else {
+                            Post post = repository.getPostsByTitle(title);
+                            System.out.println("(1) Upvote\n" +
+                                    "(2) Downvote\n" +
+                                    "(3) Unsaved\n" +
+                                    "(4) Leave comments\n" +
+                                    "(5) Back\n"+
+                                    "Enter your choice: ");
+                            int input = scanner.nextInt();
+                            switch (input) {
+                                case 1 -> upvotedPost(post, user);
+                                case 2 -> downvotedPost(post, user);
+                                case 3 -> unsavedPost(post, user);
+                                case 4 -> {
+                                    if (post.isLocked())
+                                        System.out.println("Leaving a comment for this post is locked.");
+                                    else
+                                        leaveComment(user, post);
+                                }
+                                case 5 -> viewProfile(user);
+                                default -> {
+                                    System.out.println("Invalid input.");
+                                    viewProfile(user);
+                                }
+                            }
+                        }
+                    } else if (in.toLowerCase().equals("n")){
+                    }else System.out.println("Invalid input.Please try again...");
+                }
+                viewProfile(user);
+            }
+            ///same methods
+            case 5 -> {
+                scanner.nextLine();
+                clearScreen();
+                viewTimeLinePosts(user);
+                String in;
+                if (!user.getTimelinePosts().isEmpty()) {
+                    System.out.println("Would you like to react the post?[Y/N] ");
+                    in = scanner.nextLine();
+                    String title;
+                    if (in.toLowerCase().equals("y")) {
+                        System.out.println("\n--------- Post Reaction ----------");
+                        System.out.println("Enter post's title to react : ");
+                        title = scanner.nextLine();
+                        if (searchPost(user.getTimelinePosts(), title) == null){
+                            System.out.println("Post was not found.");
+                        }else{
+                            Post post = searchPost(user.getTimelinePosts(), title);
+                            System.out.println("(1) Upvote\n" +
+                                    "(2) Downvote\n" +
+                                    "(3) Leave comments\n" +
+                                    "(4) Save post\n"+
+                                    "(5) Back\n" +
+                                    "Enter your choice: ");
+                            int input = scanner.nextInt();
+                            switch (input) {
+                                case 1 -> upvotedPost(post, user);
+                                case 2 -> downvotedPost(post, user);
+                                case 3 -> {
+                                    if (post.isLocked())
+                                        System.out.println("Leaving a comment for this post is locked.");
+                                    else
+                                        leaveComment(user, post);
+                                }
+                                case 4 -> savedPost(post, user);
+                                case 5 -> viewProfile(user);
+                                default -> {
+                                    System.out.println("Invalid input.");
+                                    viewProfile(user);
+                                }
+                            }
+                        }
+                    }else if (in.toLowerCase().equals("n")) {
+                    }else System.out.println("Invalid input.Please try again...");
+                }
+                viewProfile(user);
+            }
+                //actions
+            case 6 -> {
+                scanner.nextLine();
+                System.out.println("\n------- Upvoted --------\n");
+                System.out.println("(1) View upvoted comments\n(2) View upvoted posts\n(3) Back");
+                int ans = scanner.nextInt();
+                switch (ans) {
+                    case 1: {
+                        System.out.println("\n------- Upvoted Comments --------\n");
+                        viewUpvotedComments(user);
+                        String in;
+                        if (!user.getUpVotedComments().isEmpty()) {
+                            System.out.println("Would you like to react the comment?[Y/N] ");
+                            in = scanner.nextLine();
+                            String author;
+                            if (in.toLowerCase().equals("y")) {
+                                System.out.println("\n--------- Comment Reaction ----------");
+                                System.out.println("Enter comment's author to react : ");
+                                author = scanner.nextLine();
+                                if (searchComment(user.getUpVotedComments(), author) == null) {
+                                    System.out.println("Comment was not found.");
+                                } else {
+                                    Comment comment = searchComment(user.getUpVotedComments(), author);
+                                    System.out.println("""
+                                            (1) Upvote
+                                            (2) Downvote
+                                            (3) Back
+                                            Enter your choice:\s""");
+                                    int input = scanner.nextInt();
+                                    switch (input) {
+                                        case 1 -> upvotedComment(comment, user);
+                                        case 2 -> downvotedComment(comment, user);
+                                        case 3 -> viewProfile(user);
+                                        default -> {
+                                            System.out.println("Invalid input.");
+                                            viewProfile(user);
+                                        }
+                                    }
+                                }
+                            } else if (in.toLowerCase().equals("n")) {
+                            } else  System.out.println("Invalid input.Please try again...");
+                        }
+                        viewProfile(user);
+                    }
+                    //--------------------------------------------------------------
+                    case 2: {
+                        System.out.println("\n------- Upvoted Posts --------\n");
+                        viewUpvotedPosts(user);
+                        String in;
+                        if (!user.getUpVotedPosts().isEmpty()) {
+                            System.out.println("Would you like to react the posts ?[Y/N] ");
+                            in = scanner.nextLine();
+                            String title;
+                            if (in.toLowerCase().equals("y")) {
+                                System.out.println("\n--------- Post Reaction ----------");
+                                System.out.println("Enter post's title to react : ");
+                                title = scanner.nextLine();
+                                if (searchPost(user.getUpVotedPosts(), title) == null) {
+                                    System.out.println("Post was not found.");
+                                } else {
+                                    Post post = searchPost(user.getUpVotedPosts(), title);
+                                    System.out.println("""
+                                            (1) Upvote
+                                            (2) Downvote
+                                            (3) Back
+                                            Enter your choice:\s""");
+                                    int input = scanner.nextInt();
+                                    switch (input) {
+                                        case 1 -> upvotedPost(post, user);
+                                        case 2 -> downvotedPost(post, user);
+                                        case 3 -> viewProfile(user);
+                                        default -> {
+                                            System.out.println("Invalid input.");
+                                            viewProfile(user);
+                                        }
+                                    }
+                                }
+                            } else if (in.toLowerCase().equals("n")) {
+                            } else System.out.println("Invalid input.Please try again...");
+                        }else System.out.println("No post has been upvoted yet");
+
+                        viewProfile(user);
+                    }
+                    case 3: userMenu();
+                    default : {
+                        System.out.println("Invalid input.Please try again...");
+                        viewProfile(user);
+                    }
+                }
+            }
+            case 7 -> {
+                scanner.nextLine();
+                System.out.println("\n------- Downvoted --------\n");
+                System.out.println("(1) View downvoted comments\n(2) View downvoted posts\n(3) Back");
+                int ans = scanner.nextInt();
+                switch (ans) {
+                    case 1: {
+                        System.out.println("\n------- Downvoted Comments --------\n");
+                        viewDownvotedComments(user);
+                        String in;
+                        if (!user.getDownVotedComments().isEmpty()) {
+                            System.out.println("Would you like to react the comment?[Y/N]");
+                            in = scanner.nextLine();
+                            String author;
+                            if (in.toLowerCase().equals("y")) {
+                                System.out.println("\n--------- Comment Reaction ----------");
+                                System.out.println("Enter comment's author to react : ");
+                                author = scanner.nextLine();
+                                if (searchComment(user.getDownVotedComments(), author) == null) {
+                                    System.out.println("Comment was not found.");
+                                } else {
+                                    Comment comment = searchComment(user.getDownVotedComments(), author);
+                                    System.out.println("""
+                                            (1) Upvote
+                                            (2) Downvote
+                                            (3) Back
+                                            Enter your choice:\s""");
+                                    int input = scanner.nextInt();
+                                    switch (input) {
+                                        case 1 -> upvotedComment(comment, user);
+                                        case 2 -> downvotedComment(comment, user);
+                                        case 3 -> viewProfile(user);
+                                        default -> {
+                                            System.out.println("Invalid input.");
+                                            viewProfile(user);
+                                        }
+                                    }
+                                }
+                            } else if (in.toLowerCase().equals("n")) {
+                                viewProfile(user);
+                            } else {
+                                System.out.println("Invalid input.Please try again...");
+                                viewProfile(user);
+                            }
+                        }else{
+                            System.out.println("No comment has benn downvoted yet");
+                            viewProfile(user);
+                        }
+                    }
+                    case 2: {
+                        System.out.println("\n------- Downvoted Posts --------\n");
+                        viewDownvotedPosts(user);
+                        String in;
+                        if (!user.getDownVotedPosts().isEmpty()) {
+                            System.out.println("Would you like to react the posts ?[Y/N]");
+                            in = scanner.nextLine();
+                            String title;
+                            if (in.toLowerCase().equals("y")) {
+                                System.out.println("\n--------- Post Reaction ----------");
+                                System.out.println("Enter post's title to react : ");
+                                title = scanner.nextLine();
+                                if (searchPost(user.getDownVotedPosts(), title) == null) {
+                                    System.out.println("Post was not found.");
+                                } else {
+                                    Post post = searchPost(user.getDownVotedPosts(), title);
+                                    System.out.println("""
+                                            (1) Upvote
+                                            (2) Downvote
+                                            (3) Back
+                                            Enter your choice:\s""");
+                                    int input = scanner.nextInt();
+                                    switch (input) {
+                                        case 1 -> upvotedPost(post, user);
+                                        case 2 -> downvotedPost(post, user);
+                                        case 3 -> viewProfile(user);
+                                        default -> {
+                                            System.out.println("Invalid input.");
+                                            viewProfile(user);
+                                        }
+                                    }
+                                }
+                            } else if (in.toLowerCase().equals("n")) {
+                                viewProfile(user);
+                            } else {
+                                System.out.println("Invalid input.Please try again...");
+                                viewProfile(user);
+                            }
+                        }else{
+                            System.out.println("No post has been downvoted yet");
+                            viewProfile(user);
+                        }
+                    }
+                    case 3: userMenu();
+                    default : {
+                        System.out.println("Invalid input.Please try again...");
+                        viewProfile(user);
+                    }
+                }
             }
             case 8 -> userMenu();
             default -> {
                 System.out.println("Invalid input.Please try again...");
                 viewProfile(user);
+                }
+             }
+        }
+
+    public static void upvotedPost(Post post, User user){
+        Scanner scanner = new Scanner(System.in);
+        boolean found = false;
+        for (Post post1: user.getUpVotedPosts()) {
+            if (post1.equals(post)) {
+                found = true;
+                System.out.println("Already upvoted.");
+                System.out.println("Retract your vote? [Y/N]");
+                String choice = scanner.nextLine().toLowerCase();
+                if (choice.equals("y")) {
+                    user.getDownVotedPosts().remove(post1);
+                    break;
+                } else if (choice.equals("n")) {
+                    viewProfile(user);
+                    return;
+                }
+            }
+            if(!found) {
+                System.out.println("Post upvoted.");
+                post.increasePostKarma();
+                user.getUpVotedPosts().add(post);
+            }
+        }
+    }
+    public static void downvotedPost(Post post, User user){
+        Scanner scanner = new Scanner(System.in);
+        boolean found = false;
+
+        for (Post post1: user.getDownVotedPosts()) {
+            if (post1.equals(post)) {
+                found = true;
+                System.out.println("Already downvoted.");
+                System.out.println("Retract your vote? [Y/N]");
+                String choice = scanner.nextLine().toLowerCase();
+                if (choice.equals("y")) {
+                    user.getDownVotedPosts().remove(post1);
+                    break;
+                } else if (choice.equals("n")) {
+                    viewProfile(user);
+                    return;
+                }
             }
         }
 
-
+        if (!found) {
+            System.out.println("Post downvoted.");
+            post.decreasePostKarma();
+            user.getDownVotedPosts().add(post);
+        }
+    }
+    public static void unsavedPost(Post post, User user){
+        user.getSavedPosts().remove(post);
+        System.out.println("Post was unsaved.");
+    }
+    public static void savedPost(Post post, User user){
+        user.getSavedPosts().add(post);
+        System.out.println("Post was saved.");
+    }
+    public static void upvotedComment(Comment comment, User user){
+        Scanner scanner = new Scanner(System.in);
+        boolean found = false;
+        for (Comment comment1: user.getUpVotedComments()) {
+            if (comment1.equals(comment)) {
+                found = true;
+                System.out.println("Already upvoted.");
+                System.out.println("Retract your vote? [Y/N]");
+                String choice = scanner.nextLine().toLowerCase();
+                if (choice.equals("y")) {
+                    user.getUpVotedComments().remove(comment1);
+                    break;
+                } else if (choice.equals("n")) {
+                    viewProfile(user);
+                    return;
+                }
+            }
+            if(!found) {
+                System.out.println("Comment upvoted.");
+                comment.increaseCommentKarma();
+                user.getUpVotedComments().add(comment);
+            }
+        }
+    }
+    public static void downvotedComment(Comment comment, User user){
+        Scanner scanner = new Scanner(System.in);
+        boolean found = false;
+        for (Comment comment1: user.getUpVotedComments()) {
+            if (comment1.equals(comment)) {
+                found = true;
+                System.out.println("Already upvoted.");
+                System.out.println("Retract your vote? [Y/N]");
+                String choice = scanner.nextLine().toLowerCase();
+                if (choice.equals("y")) {
+                    user.getDownVotedComments().remove(comment1);
+                    break;
+                } else if (choice.equals("n")) {
+                    viewProfile(user);
+                    return;
+                }
+            }
+            if(!found) {
+                System.out.println("Comment downvoted.");
+                comment.decreaseCommentKarma();
+                user.getDownVotedComments().add(comment);
+            }
+        }
     }
 
+    private static Post searchPost(List<Post> posts, String title){
+        for (Post post: posts){
+            if (post.getTitle().equals(title))
+                return post;
+        }
+        return null;
+    }
+    private static Comment searchComment(List<Comment> comments, String title){
+        for (Comment comment: comments){
+            if (comment.getAuthor().getUsername().equals(title))
+                return comment;
+        }
+        return null;
+    }
+    private static Subreddit searchSubreddit(List<Subreddit> subreddits, String name){
+        for (Subreddit subreddit: subreddits){
+            if (subreddit.getName().equals(name))
+                return subreddit;
+        }
+        return null;
+    }
     private static void editPersonalInfo(User user) {
         Scanner scanner = new Scanner(System.in);
         clearScreen();

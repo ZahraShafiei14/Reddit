@@ -47,11 +47,8 @@ public class Post {
     }
 
     public void addComment(Comment comment){
-        if (!isLocked){
             comments.add(comment);
-            System.out.println("comment was added.");
-        }else
-            System.out.println("Leaving a comment for this post is locked.");
+            System.out.println("Comment was added.");
     }
 
     public void deleteComment(Comment comment){
