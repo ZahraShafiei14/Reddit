@@ -8,7 +8,7 @@
 6. [Contact Information](#ContactInformation)
 
 ## Description <a name="description"></a>
-This is my advanced programming mid-term project, which is a Movie Aggregator application
+This is my advanced programming mid-term project, which is a Reddit-like application
 implemented in Java. It allows users to create subreddit and post, upvote/ downvote on them.
 ## Usage <a name="usage"></a>
 ### Reddit Menu
